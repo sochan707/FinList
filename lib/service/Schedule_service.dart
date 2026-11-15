@@ -1,5 +1,6 @@
 import '../model/scheduleItem_model.dart';
 import '../model/dateOnly.dart';
+import 'dateOnly_service.dart';
 
 class ScheduleService {
   final List<ScheduleItem> _schedules = [];
@@ -128,12 +129,48 @@ class ScheduleService {
     return requestedDay.weekday == firstDay.weekday;
   }
 
+  // List<ScheduleItem> getWeeklySchedulesOnDate(DateOnly date) {
+  //   final List<ScheduleItem> results = [];
+
+  //   for (var s in _schedules) {
+  //     if (_weeklyRepeatOnDate(s, date)) {
+  //       results.add(s);
+  //     }
+  //   }
+
+  //   return results;
+  // }
+
   List<ScheduleItem> getWeeklySchedulesOnDate(DateOnly date) {
     final List<ScheduleItem> results = [];
+    final dateService = DateOnlyService();
 
     for (var s in _schedules) {
-      if (_weeklyRepeatOnDate(s, date)) {
-        results.add(s);
+      if (!(s.repeatsWeekly)) continue;
+
+      DateOnly dayToCheck = date;
+
+      final firstStart = DateTime(
+        s.startDate.year,
+        s.startDate.month,
+        s.startDate.day,
+      );
+
+      final firstEnd = DateTime(
+        s.endDate.year,
+        s.endDate.month,
+        s.endDate.day,
+      );
+      
+      final daysCovered = firstEnd.difference(firstStart).inDays;
+
+      for (var i = 0; i <= daysCovered; i++) {
+        if (_weeklyRepeatOnDate(s, dayToCheck)) {
+          results.add(s);
+          break;
+        }
+
+        dayToCheck = dateService.addDays(dayToCheck, -1);
       }
     }
 
@@ -148,5 +185,5 @@ class ScheduleService {
     return results;
   }
   
-  
+
 }
