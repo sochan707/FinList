@@ -139,4 +139,14 @@ class ScheduleService {
 
     return results;
   }
+
+  List<ScheduleItem> getSchedulesForDate(DateOnly date) {
+    final results = getNonRepeatingSchedulesForDate(date);
+
+    results.addAll(getWeeklySchedulesOnDate(date));
+
+    return results;
+  }
+  
+  
 }
