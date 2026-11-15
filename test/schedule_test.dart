@@ -66,4 +66,52 @@ void main() {
     expect(service.getSchedulesForDate(DateOnly(day: 27, month: 11, year: 2026)), contains(shift));
     expect(service.getSchedulesForDate(DateOnly(day: 28, month: 11, year: 2026)), contains(shift));
   });
+
+  test('deleting a one-time overnight shift removes it from both days', () {
+    final service = ScheduleService();
+    final friday = DateOnly(day: 20, month: 11, year: 2026);
+    final saturday = DateOnly(day: 21, month: 11, year: 2026);
+
+    final shift = ScheduleItem(
+      id: 'W3',
+      title: 'Night shift',
+      scheduleType: ScheduleType.workShift,
+      startDate: friday,
+      endDate: saturday,
+      startTime: const TimeOfDay(hour: 22, minute: 0),
+      endTime: const TimeOfDay(hour: 2, minute: 0),
+    );
+
+    service.addSchedule(shift);
+    expect(service.getSchedulesForDate(friday), contains(shift));
+    expect(service.getSchedulesForDate(saturday), contains(shift));
+
+    service.deleteNonRepeatingSchedule('W3');
+
+    expect(service.getSchedulesForDate(friday), isEmpty);
+    expect(service.getSchedulesForDate(saturday), isEmpty);
+  });
+
+  test('one-time delete does not remove a weekly schedule', () {
+    final service = ScheduleService();
+    final friday = DateOnly(day: 20, month: 11, year: 2026);
+
+    final shift = ScheduleItem(
+      id: 'W4',
+      title: 'Weekly shift',
+      scheduleType: ScheduleType.workShift,
+      startDate: friday,
+      endDate: friday,
+      startTime: const TimeOfDay(hour: 9, minute: 0),
+      endTime: const TimeOfDay(hour: 17, minute: 0),
+      repeatsWeekly: true,
+    );
+
+    service.addSchedule(shift);
+
+    expect(() => service.deleteNonRepeatingSchedule('W4'), throwsException);
+    expect(service.getSchedulesForDate(friday), contains(shift));
+  });
+
+
 }

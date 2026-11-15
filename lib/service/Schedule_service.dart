@@ -67,6 +67,29 @@ class ScheduleService {
     _schedules.add(schedule);
   }
 
+  void deleteNonRepeatingSchedule(String id) {
+    ScheduleItem? schedule = _findSchedule(id);
+
+    if(schedule == null){
+      throw Exception("Schedule cannot be found!");
+    }
+
+    if (schedule.repeatsWeekly) {
+      throw Exception('This method only deletes non-repeated schedules');
+    }
+
+    _schedules.remove(schedule);
+  }
+
+  ScheduleItem? _findSchedule(String id){
+    for(var s in _schedules){
+      if(s.id == id){
+        return s;
+      }
+    }
+    return null;
+  }
+
   List<ScheduleItem> getNonRepeatingSchedulesForDate(DateOnly date){
     final List<ScheduleItem> results = [];
     final requestedDay = DateTime(date.year, date.month, date.day);
@@ -128,18 +151,6 @@ class ScheduleService {
 
     return requestedDay.weekday == firstDay.weekday;
   }
-
-  // List<ScheduleItem> getWeeklySchedulesOnDate(DateOnly date) {
-  //   final List<ScheduleItem> results = [];
-
-  //   for (var s in _schedules) {
-  //     if (_weeklyRepeatOnDate(s, date)) {
-  //       results.add(s);
-  //     }
-  //   }
-
-  //   return results;
-  // }
 
   List<ScheduleItem> getWeeklySchedulesOnDate(DateOnly date) {
     final List<ScheduleItem> results = [];
