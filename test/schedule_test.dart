@@ -26,4 +26,24 @@ void main() {
 
     expect(service.getWeeklySchedulesOnDate(DateOnly(day: 30, month: 11, year: 2026)),isEmpty);
   });
+
+  test('one-time overnight shift appears on both days', () {
+  final service = ScheduleService();
+
+  final shift = ScheduleItem(
+    id: 'W1',
+    title: 'Night shift',
+    scheduleType: ScheduleType.workShift,
+    startDate: DateOnly(day: 20, month: 11, year: 2026),
+    endDate: DateOnly(day: 21, month: 11, year: 2026),
+    startTime: const TimeOfDay(hour: 22, minute: 0),
+    endTime: const TimeOfDay(hour: 2, minute: 0),
+  );
+
+  service.addSchedule(shift);
+
+  expect(service.getNonRepeatingSchedulesForDate(DateOnly(day: 20, month: 11, year: 2026)), contains(shift));
+
+  expect(service.getNonRepeatingSchedulesForDate(DateOnly(day: 21, month: 11, year: 2026)), contains(shift));
+});
 }
