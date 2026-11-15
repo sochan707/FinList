@@ -81,6 +81,23 @@ class ScheduleService {
     _schedules.remove(schedule);
   }
 
+  void updateNonRepeatingSchedule(ScheduleItem updated) {
+    ScheduleItem? schedule = _findSchedule(updated.id);
+
+    if (schedule == null) {
+      throw Exception('Schedule cannot be found!');
+    }
+
+    if (schedule.repeatsWeekly || updated.repeatsWeekly) {
+      throw Exception('This method only edits non-repeated schedules');
+    }
+
+    validateSchedule(updated);
+
+    final index = _schedules.indexOf(schedule);
+    _schedules[index] = updated;
+  }
+
   ScheduleItem? _findSchedule(String id){
     for(var s in _schedules){
       if(s.id == id){

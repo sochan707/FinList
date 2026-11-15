@@ -113,5 +113,90 @@ void main() {
     expect(service.getSchedulesForDate(friday), contains(shift));
   });
 
+  test('editing a one-time schedule moves it to the new day', () {
+    final service = ScheduleService();
+    final monday = DateOnly(day: 16, month: 11, year: 2026);
+    final tuesday = DateOnly(day: 17, month: 11, year: 2026);
 
+    final original = ScheduleItem(
+      id: 'C2',
+      title: 'Math',
+      scheduleType: ScheduleType.classSession,
+      startDate: monday,
+      endDate: monday,
+      startTime: const TimeOfDay(hour: 9, minute: 0),
+      endTime: const TimeOfDay(hour: 10, minute: 0),
+    );
+
+    final updated = ScheduleItem(
+      id: 'C2',
+      title: 'Math',
+      scheduleType: ScheduleType.classSession,
+      startDate: tuesday,
+      endDate: tuesday,
+      startTime: const TimeOfDay(hour: 11, minute: 0),
+      endTime: const TimeOfDay(hour: 12, minute: 0),
+    );
+
+    service.addSchedule(original);
+    service.updateNonRepeatingSchedule(updated);
+
+    expect(service.getSchedulesForDate(monday), isEmpty);
+    expect(service.getSchedulesForDate(tuesday), [updated]);
+  });
+
+  test('invalid one-time edit keeps the original schedule', () {
+    final service = ScheduleService();
+    final monday = DateOnly(day: 16, month: 11, year: 2026);
+
+    final original = ScheduleItem(
+      id: 'C3',
+      title: 'Math',
+      scheduleType: ScheduleType.classSession,
+      startDate: monday,
+      endDate: monday,
+      startTime: const TimeOfDay(hour: 9, minute: 0),
+      endTime: const TimeOfDay(hour: 10, minute: 0),
+    );
+
+    final invalidUpdate = ScheduleItem(
+      id: 'C3',
+      title: 'Math',
+      scheduleType: ScheduleType.classSession,
+      startDate: monday,
+      endDate: monday,
+      startTime: const TimeOfDay(hour: 11, minute: 0),
+      endTime: const TimeOfDay(hour: 10, minute: 0),
+    );
+
+    service.addSchedule(original);
+
+    expect(() => service.updateNonRepeatingSchedule(invalidUpdate), throwsArgumentError);
+    expect(service.getSchedulesForDate(monday), [original]);
+  });
+
+  test('cancelling one weekly date keeps the other weeks', () {
+    final service = ScheduleService();
+    final firstMonday = DateOnly(day: 16, month: 11, year: 2026);
+    final cancelledMonday = DateOnly(day: 23, month: 11, year: 2026);
+    final nextMonday = DateOnly(day: 30, month: 11, year: 2026);
+
+    final math = ScheduleItem(
+      id: 'C4',
+      title: 'Math',
+      scheduleType: ScheduleType.classSession,
+      startDate: firstMonday,
+      endDate: firstMonday,
+      startTime: const TimeOfDay(hour: 9, minute: 0),
+      endTime: const TimeOfDay(hour: 10, minute: 0),
+      repeatsWeekly: true,
+    );
+
+    service.addSchedule(math);
+    service.cancelWeeklyOccurrence('C4', cancelledMonday);
+
+    expect(service.getSchedulesForDate(firstMonday), contains(math));
+    expect(service.getSchedulesForDate(cancelledMonday), isEmpty);
+    expect(service.getSchedulesForDate(nextMonday), contains(math));
+  });
 }
